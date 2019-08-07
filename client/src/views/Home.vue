@@ -18,12 +18,14 @@
       <b-button type="submit" variant="primary">Submit</b-button>
     </b-form>
 
+    <p v-if="updating">Updating...</p>
+
     <b-card
       title="Indices I have seen:"
       class="mt-2"
     >
     <b-card-text>
-      {{ seenIndices.join(', ') }}.
+      {{ seenIndices.map(row => row.index).join(', ') }}.
     </b-card-text>
   </b-card>
 
@@ -48,8 +50,10 @@ export default {
   name: 'home',
   data() {
     return {
-      seenIndices: [1,2,3,4],
-      values: {1:1, 2:'asda'},
+      updating: false,
+      interval: null,
+      seenIndices: [],
+      values: {},
       index: ''
     };
   },
@@ -62,6 +66,9 @@ export default {
     onSubmit(event) {
       fetch('/api/values', {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           index: this.index
         })
@@ -69,14 +76,14 @@ export default {
       this.index = '';
     },
     fetchValues() {
-      fetch('/api/values/current')
+      return fetch('/api/values/current')
         .then(res => res.json())
         .then(values => {
           this.values = values;
         });
     },
     fetchIndices() {
-      fetch('/api/indices')
+      return fetch('/api/indices')
         .then(res => res.json())
         .then(indices => {
           this.seenIndices = indices;
@@ -84,8 +91,26 @@ export default {
     }
   },
   created() {
-    this.fetchValues();
-    this.fetchIndices();
+    Promise.all([
+      this.fetchValues(),
+      this.fetchIndices()
+    ]).then(() => {
+      this.interval = setInterval(async () => {
+        this.updating = true;
+        // delay for 1.5s
+        await new Promise((resolve) => {
+          setTimeout(() => resolve(), 1500);
+        })
+        await Promise.all([
+          this.fetchValues(),
+          this.fetchIndices()
+        ]);
+        this.updating = false;
+      }, 5000);
+    });
+  },
+  beforeDestroy() {
+    clearInterval(this.interval);
   }
 };
 </script>
