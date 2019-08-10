@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/MaximNd/Overcomplicated-fibonacci-docker.svg?branch=master)](https://travis-ci.org/MaximNd/Overcomplicated-fibonacci-docker)
+
 # Overcomplicated fibonacci calculator using docker
 
 Multi-Container application for calculation fibonacci numbers. It uses `nginx` for reverse proxy. `postgres` for storing seen indices of fibonacci numbers and `redis` for storing calculated values. Back-end is a simply `node.js` app with `express`. Front-end is a simply `vue.js` app. For calculating fibonacci number uses `worker` service which listen for the `insert` event from `api` service.
