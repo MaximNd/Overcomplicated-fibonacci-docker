@@ -1,0 +1,22 @@
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  - docker build -t maximnd/client-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run maximnd/client-test npm run test:unit
+
+after_success:
+  - docker build -t maximnd/overcomplicated-fib-client ./client
+  - docker build -t maximnd/overcomplicated-fib-nginx  ./nginx
+  - docker build -t maximnd/overcomplicated-fib-server ./server
+  - docker build -t maximnd/overcomplicated-fib-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push maximnd/overcomplicated-fib-client
+  - docker push maximnd/overcomplicated-fib-nginx
+  - docker push maximnd/overcomplicated-fib-server
+  - docker push maximnd/overcomplicated-fib-worker
+  - docker logout
